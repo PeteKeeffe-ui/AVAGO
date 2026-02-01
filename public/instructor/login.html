@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Login - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-lg);
+        }
+
+        .login-card {
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-logo {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-form {
+            margin-top: var(--spacing-xl);
+            text-align: left;
+        }
+
+        .back-link {
+            margin-top: var(--spacing-md);
+            display: inline-block;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: var(--primary-light);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="card login-card">
+            <div class="login-logo">✈️</div>
+            <h1>Instructor Login</h1>
+            <p class="text-secondary">Sign in to create and manage quizzes</p>
+
+            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+            <form class="login-form" id="loginForm">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+
+            <a href="/" class="back-link">← Back to Home</a>
+
+            <div
+                style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid rgba(255,255,255,0.1);">
+                <p class="text-muted" style="font-size: 0.875rem;">Test Account: instructor1 / avq2026</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+
+            try {
+                const response = await fetch('/api/instructor/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/instructor/dashboard.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

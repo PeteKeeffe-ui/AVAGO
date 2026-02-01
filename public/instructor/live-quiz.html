@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Quiz Control - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/instructor.css">
+    <style>
+        .live-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        .question-preview-live {
+            background: var(--bg-surface-light);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-lg) 0;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .timer-bar-container {
+            width: 100%;
+            height: 12px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary-light));
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--secondary);
+            text-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .student-status-card {
+            background: var(--bg-surface);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid #ccc;
+            transition: all 0.3s;
+        }
+
+        .student-status-card.answered {
+            border-left-color: var(--success);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .student-status-card.active {
+            border-left-color: var(--secondary);
+        }
+
+        /* Option grid for instructor to match student */
+        .instructor-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .instructor-option {
+            background: var(--bg-surface);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .instructor-option.correct {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .instr-letter {
+            width: 30px;
+            height: 30px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .stats-overlay {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="live-container">
+        <header class="flex-between mb-lg">
+            <div class="flex align-center gap-md">
+                <span class="logo" style="font-size: 2rem;">✈️</span>
+                <div>
+                    <h2 id="quizTitle">Loading...</h2>
+                    <div class="badge badge-outline" id="gameCodeLabel">Code: ------</div>
+                </div>
+            </div>
+            <div class="flex align-center gap-md">
+                <button onclick="AVQ_Debug.show()" class="btn btn-outline btn-sm">Debug</button>
+                <button onclick="endQuiz()" class="btn btn-error">End Session</button>
+            </div>
+        </header>
+
+        <!-- 1. WAITING ROOM -->
+        <div id="waitingRoom" class="live-control-panel text-center">
+            <div class="game-code-display"
+                style="padding: 3rem; background: var(--bg-surface-light); border-radius: var(--radius-lg); margin-bottom: 2rem;">
+                <p class="text-secondary mb-md">Students join at <strong>http://${window.location.host}/student</strong>
+                </p>
+                <div class="game-code" id="displayCode"
+                    style="font-size: 5rem; letter-spacing: 10px; color: var(--secondary);">000000</div>
+            </div>
+
+            <h3>Connected Students (<span id="connectedCountLobby">0</span>)</h3>
+            <div id="studentList" class="student-grid"></div>
+
+            <div class="mt-xl">
+                <button id="startBtn" onclick="startQuiz()" class="btn btn-primary btn-lg" disabled>Start Quiz</button>
+            </div>
+        </div>
+
+        <!-- 2. ACTIVE QUESTION -->
+        <div id="activeQuiz" class="card" style="display: none;">
+            <div class="flex-between align-center">
+                <div class="badge badge-secondary" id="questionStep">Question 1/10</div>
+                <div class="stat-box text-center">
+                    <div class="stat-number" id="timerDisplay">75</div>
+                </div>
+                <div class="badge badge-outline" id="responsesLabel">0 / 0 Answered</div>
+            </div>
+
+            <div class="timer-bar-container">
+                <div id="timerBar" class="timer-bar-fill"></div>
+            </div>
+
+            <div class="question-preview-live">
+                <h2 id="questionText">Question Text...</h2>
+                <div id="instrOptionsGrid" class="instructor-options-grid"></div>
+            </div>
+
+            <div id="statsResult" class="stats-overlay" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-val" id="correctCount" style="color: var(--success);">0</div>
+                    <div class="text-secondary">CORRECT</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="incorrectCount" style="color: var(--error);">0</div>
+                    <div class="text-secondary">INCORRECT</div>
+                </div>
+            </div>
+
+            <div class="mt-lg" id="statusSection">
+                <h4>Student Activity</h4>
+                <div id="statusGrid" class="student-grid"></div>
+            </div>
+
+            <div class="mt-xl flex-center gap-md">
+                <button id="showResultsBtn" onclick="showResults()" class="btn btn-secondary">Stop & Show
+                    Answer</button>
+                <button id="continueBtn" onclick="nextQuestion()" class="btn btn-primary btn-lg"
+                    style="display: none;">Continue →</button>
+            </div>
+        </div>
+
+        <!-- 3. INTERMISSION / LEADERBOARD -->
+        <div id="intermission" class="card" style="display: none;">
+            <h2 class="text-center mb-lg">Leaderboard</h2>
+            <div id="leaderboardList" class="leaderboard"></div>
+            <div class="mt-xl text-center">
+                <button onclick="nextQuestion()" class="btn btn-primary btn-lg">Next Question</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/debug.js"></script>
+    <script>
+        const socket = io();
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameCode = urlParams.get('code');
+        const sessionId = urlParams.get('session');
+        const quizId = urlParams.get('quiz');
+
+        let questions = [];
+        let totalStudents = 0;
+        let timerInterval;
+        let currentQ = null;
+        let nextAction = 'question';
+
+        function updateStartButton() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = totalStudents === 0 || questions.length === 0;
+            if (typeof AVQ_Debug !== 'undefined') {
+                AVQ_Debug.log('Button State Updated', { totalStudents, questions: questions.length, disabled: btn.disabled });
+            }
+        }
+
+        async function loadQuizData() {
+            document.getElementById('displayCode').textContent = gameCode;
+            document.getElementById('gameCodeLabel').textContent = `Code: ${gameCode}`;
+            try {
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Fetching quiz data...', { quizId });
+                const r = await fetch('/api/quizzes');
+                const qs = await r.json();
+                const q = qs.find(i => i.id == quizId);
+                if (q) {
+                    document.getElementById('quizTitle').textContent = q.title;
+                    const mods = JSON.parse(q.modules);
+                    let all = [];
+                    if (mods.includes('all')) all = await (await fetch('/api/questions')).json();
+                    else {
+                        for (const m of mods) {
+                            const res = await fetch(`/api/questions/module/${m}`);
+                            all = [...all, ...(await res.json())];
+                        }
+                    }
+                    questions = all.sort(() => 0.5 - Math.random()).slice(0, q.question_count);
+                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Questions loaded', { count: questions.length });
+                    updateStartButton();
+                } else {
+                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Quiz not found', { quizId });
+                }
+            } catch (e) {
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Failed to load quiz data', e);
+            }
+        }
+
+        socket.on('student-joined', (data) => {
+            totalStudents = data.totalStudents;
+            document.getElementById('connectedCountLobby').textContent = totalStudents;
+            updateStartButton();
+            const list = document.getElementById('studentList');
+            list.innerHTML = data.students.map(s => `
+            <div class="student-status-card active">
+                <div class="flex align-center gap-sm">
+                    <div class="student-avatar" style="width: 30px; height: 30px; line-height: 30px; font-size: 0.8rem;">${s.name[0].toUpperCase()}</div>
+                    <strong>${s.name}</strong>
+                </div>
+            </div>
+        `).join('');
+        });
+
+        socket.on('leaderboard-update', (data) => {
+            const answered = data.filter(s => s.hasAnswered).length;
+            document.getElementById('responsesLabel').textContent = `${answered} / ${totalStudents} Answered`;
+            const grid = document.getElementById('statusGrid');
+            grid.innerHTML = data.map(s => `
+            <div class="student-status-card ${s.hasAnswered ? 'answered' : ''}">
+                <div class="flex-between align-center">
+                    <span>${s.name}</span>
+                    <span>${s.hasAnswered ? '✅' : '⏳'}</span>
+                </div>
+            </div>
+        `).join('');
+        });
+
+        socket.on('new-question', (data) => {
+            currentQ = data;
+            document.getElementById('waitingRoom').style.display = 'none';
+            document.getElementById('intermission').style.display = 'none';
+            document.getElementById('activeQuiz').style.display = 'block';
+            document.getElementById('statsResult').style.display = 'none';
+            document.getElementById('statusSection').style.display = 'block';
+            document.getElementById('questionText').innerHTML = data.question_type === 'fillblank'
+                ? data.question_text.replace(/\[blank\]/g, '<span style="border-bottom: 2px solid var(--secondary); display: inline-block; min-width: 60px; height: 1.2em; vertical-align: bottom;"></span>')
+                : data.question_text;
+
+            const grid = document.getElementById('instrOptionsGrid');
+            grid.innerHTML = '';
+            if (data.question_type === 'fillblank' || data.question_type === 'short') {
+                grid.innerHTML = '<div class="text-secondary italic">Students are typing their answers...</div>';
+            } else {
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+                data.options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'instructor-option';
+                    div.innerHTML = `<div class="instr-letter">${letters[i]}</div><div>${opt}</div>`;
+                    div.id = `instr-opt-${i}`;
+                    grid.appendChild(div);
+                });
+            }
+
+            startTimer(data.time_limit);
+        });
+
+        socket.on('question-results', (data) => {
+            clearInterval(timerInterval);
+            document.getElementById('showResultsBtn').style.display = 'none';
+            document.getElementById('statusSection').style.display = 'none';
+            document.getElementById('continueBtn').style.display = 'block';
+
+            // Show correct answer in grid or question text
+            const cA = Array.isArray(data.correctAnswer) ? data.correctAnswer : [data.correctAnswer];
+
+            if (currentQ.question_type === 'fillblank') {
+                // Correctly render multiple blanks by replacing them sequentially
+                const parts = currentQ.question_text.split('[blank]');
+                let html = '';
+                const answers = cA;
+
+                parts.forEach((part, i) => {
+                    html += part;
+                    if (i < parts.length - 1) {
+                        let ansToShow = '';
+                        if (parts.length === 2) {
+                            // Single blank: synonyms
+                            ansToShow = answers.join(' / ');
+                        } else {
+                            // Multiple blanks: positional
+                            ansToShow = answers[i] || '?';
+                        }
+                        html += `<span style="color: var(--success); border-bottom: 2px solid var(--success); padding: 0 5px; font-weight: bold;">${ansToShow}</span>`;
+                    }
+                });
+                document.getElementById('questionText').innerHTML = html;
+            } else if (currentQ.question_type === 'short') {
+                document.getElementById('instrOptionsGrid').innerHTML = `<div class="card alert-success text-center"><h4>Correct answer:</h4><p>${cA.join(', ')}</p></div>`;
+            } else {
+                cA.forEach(idx => {
+                    const el = document.getElementById(`instr-opt-${idx}`);
+                    if (el) el.classList.add('correct');
+                });
+            }
+
+            // Show stats
+            document.getElementById('statsResult').style.display = 'flex';
+            // Use the stats sent from server. If stats are missing, defaut to 0.
+            // Note: The server needs to calculate 'correct' based on partial/full logic or basic count.
+            // If the server sends { correct: X, total: Y }, we display it.
+            // If partial credit counts as "correct" for this stats view, or "incorrect", is up to server logic. 
+            // Usually, instructor cares about who got full points vs some points. 
+            // For now, trust the server's 'correct' count.
+            const s = data.stats || { correct: 0, total: 0 };
+            document.getElementById('correctCount').textContent = s.correct;
+            document.getElementById('incorrectCount').textContent = s.total - s.correct;
+
+            // Update leaderboard data for the intermission screen
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = data.leaderboard.map((s, i) => `
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank ${i < 3 ? ['first', 'second', 'third'][i] : ''}">${i + 1}</div>
+                <div class="leaderboard-name">${s.name}</div>
+                <div class="leaderboard-score">${s.score} pts</div>
+            </div>
+        `).join('');
+
+            nextAction = data.showLeaderboard ? 'leaderboard' : 'question';
+        });
+
+        socket.on('quiz-ended', (data) => {
+            if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Session ended by server');
+            window.location.href = '/instructor/dashboard.html';
+        });
+
+        function startQuiz() {
+            socket.emit('start-quiz', { gameCode, questions });
+            setTimeout(() => socket.emit('next-question', { gameCode }), 1000);
+        }
+
+        function nextQuestion() {
+            if (nextAction === 'leaderboard') {
+                document.getElementById('activeQuiz').style.display = 'none';
+                document.getElementById('intermission').style.display = 'block';
+                nextAction = 'question';
+            } else {
+                socket.emit('next-question', { gameCode });
+            }
+        }
+
+        function showResults() { socket.emit('show-results', { gameCode }); }
+        function endQuiz() { if (confirm('End?')) socket.emit('end-quiz', { gameCode }); }
+
+        function startTimer(sec) {
+            let left = sec;
+            const bar = document.getElementById('timerBar');
+            const display = document.getElementById('timerDisplay');
+            clearInterval(timerInterval);
+            bar.style.width = '100%';
+            display.textContent = left;
+            timerInterval = setInterval(() => {
+                left--;
+                display.textContent = Math.max(0, left);
+                bar.style.width = `${(Math.max(0, left) / sec) * 100}%`;
+                if (left <= 0) { clearInterval(timerInterval); showResults(); }
+            }, 1000);
+        }
+
+        loadQuizData();
+        socket.emit('host-session', { gameCode });
+    </script>
+</body>
+
+</html>

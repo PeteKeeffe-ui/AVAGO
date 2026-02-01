@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Quiz - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/instructor.css">
+    <style>
+        .module-item {
+            padding: var(--spacing-sm);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .module-item:hover {
+            background: var(--bg-surface-light);
+        }
+
+        .module-item.selected {
+            border-color: var(--secondary);
+            background: rgba(14, 165, 233, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="mb-lg">
+            <a href="/instructor/dashboard.html" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+            <h1 class="mt-md">Create New Quiz</h1>
+        </header>
+
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Quiz Details</h3>
+                <div class="input-group">
+                    <label for="quizTitle">Quiz Title</label>
+                    <input type="text" id="quizTitle" placeholder="e.g., Module 15 Practice Test">
+                </div>
+                <div class="input-group">
+                    <label for="quizDescription">Description</label>
+                    <textarea id="quizDescription" rows="3" placeholder="Description for students..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="quizMode">Mode</label>
+                    <select id="quizMode">
+                        <option value="practice">Practice Mode (Unlimited time)</option>
+                        <option value="exam">Exam Mode (Timed questions)</option>
+                        <option value="mixed">Mixed Mode (Combined Modules)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="timeLimit">Time per Question (seconds)</label>
+                    <input type="number" id="timeLimit" value="75" min="5" max="300">
+                </div>
+                <div class="input-group">
+                    <label for="questionCount">Number of Questions</label>
+                    <input type="number" id="questionCount" value="10" min="1" max="50">
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Select EASA Modules</h3>
+                <p class="text-secondary mb-sm">Choose which modules to include questions from:</p>
+                <div id="moduleGrid" class="grid grid-2 gap-sm"
+                    style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                    <!-- Modules will be loaded here -->
+                </div>
+                <div class="mt-md">
+                    <button onclick="selectAllModules()" class="btn btn-outline btn-sm">Select All</button>
+                    <button onclick="clearModules()" class="btn btn-outline btn-sm">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-xl text-center">
+            <button onclick="saveQuiz()" class="btn btn-primary btn-lg" style="min-width: 250px;">Save & Create
+                Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedModules = new Set();
+
+        async function loadModules() {
+            try {
+                const [modRes, qRes] = await Promise.all([
+                    fetch('/api/modules'),
+                    fetch('/api/questions')
+                ]);
+
+                const modData = await modRes.json();
+                const questions = await qRes.json();
+
+                // Count questions per module
+                const qCounts = {};
+                questions.forEach(q => {
+                    qCounts[q.module_id] = (qCounts[q.module_id] || 0) + 1;
+                });
+
+                const grid = document.getElementById('moduleGrid');
+                grid.innerHTML = modData.modules.map(mod => {
+                    const count = qCounts[mod.id] || 0;
+                    return `
+            <div class="module-item ${count === 0 ? 'text-muted' : ''}" id="mod-${mod.id}" onclick="toggleModule('${mod.id}')" style="${count === 0 ? 'opacity: 0.6;' : ''}">
+              <div class="flex-between">
+                <strong>${mod.id}</strong>
+                <span class="badge ${count > 0 ? 'badge-primary' : 'badge-outline'}" style="font-size: 0.7rem;">${count} Qs</span>
+              </div>
+              <small class="text-secondary">${mod.name.replace(mod.id + ': ', '')}</small>
+            </div>
+          `;
+                }).join('');
+            } catch (err) {
+                console.error('Error loading modules:', err);
+            }
+        }
+
+        function toggleModule(id) {
+            const el = document.getElementById(`mod-${id}`);
+            if (selectedModules.has(id)) {
+                selectedModules.delete(id);
+                el.classList.remove('selected');
+            } else {
+                selectedModules.add(id);
+                el.classList.add('selected');
+            }
+        }
+
+        function selectAllModules() {
+            const items = document.querySelectorAll('.module-item');
+            items.forEach(item => {
+                const id = item.id.replace('mod-', '');
+                selectedModules.add(id);
+                item.classList.add('selected');
+            });
+        }
+
+        function clearModules() {
+            const items = document.querySelectorAll('.module-item');
+            items.forEach(item => {
+                const id = item.id.replace('mod-', '');
+                selectedModules.delete(id);
+                item.classList.remove('selected');
+            });
+        }
+
+        async function saveQuiz() {
+            const title = document.getElementById('quizTitle').value;
+            const description = document.getElementById('quizDescription').value;
+            const mode = document.getElementById('quizMode').value;
+            const timeLimit = parseInt(document.getElementById('timeLimit').value);
+            const questionCount = parseInt(document.getElementById('questionCount').value);
+
+            if (!title) return alert('Please enter a title');
+            if (selectedModules.size === 0) return alert('Please select at least one module');
+
+            const quizData = {
+                title,
+                description,
+                mode,
+                modules: Array.from(selectedModules),
+                time_limit: timeLimit,
+                question_count: questionCount
+            };
+
+            try {
+                const response = await fetch('/api/quizzes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(quizData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/instructor/dashboard.html';
+                } else if (result.error === 'Unauthorized' || response.status === 403) {
+                    alert('Session expired. Redirecting to login...');
+                    window.location.href = '/instructor/login.html';
+                } else {
+                    alert('Error creating quiz: ' + result.error);
+                }
+            } catch (err) {
+                console.error('Error saving quiz:', err);
+            }
+        }
+
+        loadModules();
+    </script>
+</body>
+
+</html>

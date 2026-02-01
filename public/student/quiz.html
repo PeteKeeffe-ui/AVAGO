@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz in Progress - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/student.css">
+    <style>
+        .answer-option.selected {
+            border-color: var(--secondary) !important;
+            background: rgba(14, 165, 233, 0.2) !important;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .answer-option.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .feedback-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="flex-center gap-md">
+                <span class="logo">✈️</span>
+                <h4 id="questionNo">Question 0/0</h4>
+            </div>
+            <div id="connectionStatus" class="badge badge-outline">Connecting...</div>
+            <div class="quiz-score" id="scoreDisplay">0 pts</div>
+        </header>
+
+        <div class="question-container">
+            <!-- 1. QUESTION VIEW -->
+            <div id="questionCard" class="card fade-in">
+                <div class="question-timer">
+                    <div class="timer-circle" id="timerCircle">...</div>
+                    <p class="text-secondary small">Seconds Left</p>
+                </div>
+
+                <h2 id="questionText" class="question-text">Synchronizing...</h2>
+                <div id="loadingSubtext" class="text-center mt-md text-secondary">Awaiting next question from
+                    instructor...</div>
+
+                <div id="optionsGrid" class="answer-options mt-lg"></div>
+
+                <div id="shortAnswerEntry" style="display: none;" class="mt-xl">
+                    <input type="text" id="shortAnswerInput" class="short-answer-input"
+                        placeholder="Type your answer...">
+                    <button onclick="submitShortAnswer()" class="btn btn-primary mt-md"
+                        style="width: 100%;">Submit</button>
+                </div>
+            </div>
+
+            <!-- 2. FEEDBACK VIEW -->
+            <div id="feedbackCard" class="card text-center" style="display: none;">
+                <div id="feedbackIcon" class="feedback-icon"></div>
+                <h2 id="feedbackTitle">Checking...</h2>
+                <div id="feedbackPoints" class="feedback-points"
+                    style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">+0 pts</div>
+
+                <div class="feedback-explanation card-glass"
+                    style="padding: 1.5rem; text-align: left; background: rgba(0,0,0,0.2);">
+                    <p class="text-secondary small mb-xs">CORRECT ANSWER:</p>
+                    <p id="correctAnswerText" style="font-weight: bold; color: var(--secondary); margin-bottom: 1rem;">
+                    </p>
+                    <p class="text-secondary small mb-xs">EXPLANATION:</p>
+                    <p id="explanationText" style="line-height: 1.6;"></p>
+                </div>
+
+                <p class="mt-xl text-muted italic">Sit tight! Next question coming soon...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/debug.js"></script>
+    <script>
+        const socket = io();
+        const gameCode = sessionStorage.getItem('gameCode');
+        const studentName = sessionStorage.getItem('studentName');
+
+        let currentQuestion = null;
+        let timerInterval;
+        let hasAnswered = false;
+        let selectedAnswers = new Set();
+        let syncPuller;
+
+        if (!gameCode || !studentName) window.location.href = '/student/join.html';
+
+        // 1. SOCKET SYNC
+        socket.on('connect', () => {
+            document.getElementById('connectionStatus').textContent = 'Connected';
+            document.getElementById('connectionStatus').className = 'badge badge-success';
+            doResync();
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('connectionStatus').textContent = 'Reconnecting...';
+            document.getElementById('connectionStatus').className = 'badge badge-warning';
+        });
+
+        socket.on('new-question', (data) => {
+            console.log('Received Q:', data.questionNumber);
+            // Process if it's a NEW question or if we are currently "Synchronizing"
+            if (currentQuestion && currentQuestion.questionNumber === data.questionNumber) return;
+
+            currentQuestion = data;
+            hasAnswered = false;
+            document.getElementById('loadingSubtext').style.display = 'none';
+
+            resetUI();
+            renderQuestion(data);
+            startTimer(data.time_limit);
+        });
+
+        socket.on('answer-result', (data) => {
+            showFeedback(data);
+        });
+
+        socket.on('question-results', (data) => {
+            // Results show correct answer/leaderboard on instructor screen
+            // If student hasn't answered, we show them what they missed
+            if (!hasAnswered) {
+                showFeedback({
+                    isCorrect: false,
+                    points: 0,
+                    totalScore: parseInt(document.getElementById('scoreDisplay').textContent),
+                    correctAnswer: data.correctAnswer,
+                    explanation: data.explanation
+                });
+            }
+        });
+
+        socket.on('quiz-ended', (data) => {
+            sessionStorage.setItem('finalLeaderboard', JSON.stringify(data.leaderboard));
+            sessionStorage.setItem('finalScore', document.getElementById('scoreDisplay').textContent);
+            window.location.href = '/student/results.html';
+        });
+
+        function doResync() {
+            console.log('Requesting session sync...');
+            socket.emit('rejoin-session', { gameCode, studentName });
+            socket.emit('request-question', { gameCode });
+        }
+
+        // Pull every 4 seconds if idle
+        syncPuller = setInterval(() => { if (!currentQuestion) doResync(); }, 4000);
+
+        // 2. RENDERING
+        function renderQuestion(q) {
+            document.getElementById('questionNo').textContent = `Question ${q.questionNumber}/${q.totalQuestions}`;
+            document.getElementById('questionText').textContent = q.question_text;
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            document.getElementById('shortAnswerEntry').style.display = 'none';
+            selectedAnswers.clear();
+
+            if (q.question_type === 'short') {
+                document.getElementById('shortAnswerEntry').style.display = 'block';
+            } else if (q.question_type === 'fillblank') {
+                // Replace [blank] with inline inputs
+                const parts = q.question_text.split('[blank]');
+                let html = '';
+                parts.forEach((part, i) => {
+                    html += part;
+                    if (i < parts.length - 1) {
+                        html += `<input type="text" class="inline-blank-input" placeholder="" autocomplete="off" style="border: none; border-bottom: 2px solid var(--secondary); background: transparent; color: white; width: 120px; text-align: center; font-size: 1.1rem; margin: 0 5px;">`;
+                    }
+                });
+                document.getElementById('questionText').innerHTML = html;
+
+                // Add a specific submit button for this type since the global one is hidden if not 'short'
+                const btnDiv = document.createElement('div');
+                btnDiv.className = 'mt-xl text-center';
+                btnDiv.innerHTML = `<button onclick="submitFillBlank()" class="btn btn-primary" style="min-width: 200px;">Submit Answer</button>`;
+                grid.appendChild(btnDiv);
+            } else {
+                let opts = q.options;
+                if (!opts || opts.length === 0 || q.question_type === 'truefalse') {
+                    opts = ['True', 'False'];
+                }
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+                opts.forEach((opt, i) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'answer-option';
+                    btn.innerHTML = `<div class="option-letter">${letters[i] || (i + 1)}</div><div class="option-text">${opt}</div>`;
+                    btn.onclick = () => q.question_type === 'multiple' ? toggleMulti(i, btn) : submitAnswer(i);
+                    grid.appendChild(btn);
+                });
+
+                if (q.question_type === 'multiple') {
+                    const sBtn = document.createElement('button');
+                    sBtn.className = 'btn btn-primary mt-lg w-100';
+                    sBtn.textContent = 'Submit Selected Answers';
+                    sBtn.onclick = () => submitAnswer(Array.from(selectedAnswers));
+                    grid.appendChild(sBtn);
+                }
+            }
+        }
+
+        function toggleMulti(i, el) {
+            if (hasAnswered) return;
+            if (selectedAnswers.has(i)) { selectedAnswers.delete(i); el.classList.remove('selected'); }
+            else { selectedAnswers.add(i); el.classList.add('selected'); }
+        }
+
+        function submitAnswer(ans) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+            socket.emit('submit-answer', { gameCode, studentName, answer: ans });
+
+            const opts = document.querySelectorAll('.answer-option');
+            opts.forEach((opt, i) => {
+                opt.classList.add('disabled');
+                if (Array.isArray(ans) ? ans.includes(i) : i === ans) opt.classList.add('selected');
+            });
+            const input = document.getElementById('shortAnswerInput');
+            if (input) input.disabled = true;
+        }
+
+        function submitShortAnswer() {
+            const val = document.getElementById('shortAnswerInput').value;
+            if (val) submitAnswer(val);
+        }
+
+        function submitFillBlank() {
+            const inputs = document.querySelectorAll('.inline-blank-input');
+            const answers = Array.from(inputs).map(input => input.value.trim());
+            if (answers.some(a => a)) submitAnswer(answers.length === 1 ? answers[0] : answers);
+        }
+
+        function startTimer(sec) {
+            let left = sec;
+            const circle = document.getElementById('timerCircle');
+            clearInterval(timerInterval);
+            circle.textContent = left;
+            timerInterval = setInterval(() => {
+                left--;
+                circle.textContent = Math.max(0, left);
+                if (left <= 0) {
+                    clearInterval(timerInterval);
+                    if (!hasAnswered) submitAnswer(-1);
+                }
+            }, 1000);
+        }
+
+        function showFeedback(data) {
+            clearInterval(timerInterval);
+            document.getElementById('questionCard').style.display = 'none';
+            document.getElementById('feedbackCard').style.display = 'block';
+
+            let title = data.isCorrect ? 'Correct!' : 'Incorrect';
+            let icon = data.isCorrect ? '✅' : '❌';
+            let msgClass = data.isCorrect ? 'alert-success' : 'alert-error';
+
+            if (data.partial) {
+                title = 'Partially Correct';
+                icon = '⚠️';
+                msgClass = 'alert-warning';
+                document.getElementById('feedbackCard').style.border = '2px solid #f59e0b';
+                document.getElementById('feedbackCard').style.background = 'rgba(245, 158, 11, 0.1)';
+            } else {
+                document.getElementById('feedbackCard').style.border = '';
+                document.getElementById('feedbackCard').style.background = '';
+            }
+
+            document.getElementById('feedbackTitle').textContent = title;
+            document.getElementById('feedbackIcon').textContent = icon;
+            document.getElementById('feedbackCard').className = `card text-center ${msgClass}`;
+            document.getElementById('feedbackPoints').textContent = `+${data.points} pts`;
+            document.getElementById('scoreDisplay').textContent = `${data.totalScore} pts`;
+
+            // Display Student Answer
+            const yourAnsDiv = document.getElementById('yourAnswerContainer');
+            if (!yourAnsDiv) {
+                // Inject container if missing (cleaner than editing HTML structure separately)
+                const explDiv = document.querySelector('.feedback-explanation');
+                const div = document.createElement('div');
+                div.id = 'yourAnswerContainer';
+                div.innerHTML = `
+                    <p class="text-secondary small mb-xs">YOUR ANSWER:</p>
+                    <p id="yourAnswerText" style="font-weight: bold; color: white; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;"></p>
+                `;
+                explDiv.prepend(div);
+            }
+
+            let displayYourAnswer = '';
+            if (data.studentAnswer) {
+                displayYourAnswer = Array.isArray(data.studentAnswer) ? data.studentAnswer.join(', ') : data.studentAnswer;
+            } else {
+                displayYourAnswer = 'No answer submitted';
+            }
+            document.getElementById('yourAnswerText').textContent = displayYourAnswer;
+            // Color code student answer? Maybe just keep white/neutral.
+
+            // Format correct answer for display
+            let displayAnswer = '';
+            if (currentQuestion.question_type === 'short' || currentQuestion.question_type === 'fillblank') {
+                displayAnswer = Array.isArray(data.correctAnswer) ? data.correctAnswer.join(', ') : data.correctAnswer;
+                if (currentQuestion.question_type === 'fillblank') {
+                    // Update question text to show correct words inline
+                    const parts = currentQuestion.question_text.split('[blank]');
+                    let html = '';
+                    const answers = Array.isArray(data.correctAnswer) ? data.correctAnswer : [data.correctAnswer];
+
+                    parts.forEach((part, i) => {
+                        html += part;
+                        if (i < parts.length - 1) {
+                            // If we have multiple answers but they are synonyms (single blank), show all/first
+                            // If we have multiple blanks, show corresponding answer
+                            let ansToShow = '';
+                            if (parts.length === 2) {
+                                // Single blank case: logic in showFeedback suggests it might be an array of synonyms
+                                // But data.correctAnswer comes from server. 
+                                // If it was treated as synonyms, it's an array of options.
+                                // If treated as multiple blanks, it's an array of positional answers.
+                                // We'll assume the server sends the "Correct" version.
+                                ansToShow = Array.isArray(data.correctAnswer) ? data.correctAnswer.join(' / ') : data.correctAnswer;
+                            } else {
+                                // Multiple blanks
+                                ansToShow = answers[i] || '?';
+                            }
+                            html += `<span style="color: var(--secondary); border-bottom: 2px solid var(--secondary); padding: 0 5px; font-weight: bold;">${ansToShow}</span>`;
+                        }
+                    });
+                    document.getElementById('questionText').innerHTML = html;
+                }
+            } else if (currentQuestion.question_type === 'truefalse') {
+                displayAnswer = data.correctAnswer === 0 ? 'True' : (data.correctAnswer === 1 ? 'False' : data.correctAnswer);
+            } else {
+                // Single or Multiple choice - map indices to letters
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+                const indices = Array.isArray(data.correctAnswer) ? data.correctAnswer : [data.correctAnswer];
+                displayAnswer = indices.map(idx => letters[idx] || idx).join(', ');
+            }
+
+            document.getElementById('correctAnswerText').textContent = displayAnswer;
+            document.getElementById('explanationText').textContent = data.explanation || 'No explanation provided.';
+        }
+
+        function resetUI() {
+            document.getElementById('questionCard').style.display = 'block';
+            document.getElementById('feedbackCard').style.display = 'none';
+            const input = document.getElementById('shortAnswerInput');
+            if (input) { input.value = ''; input.disabled = false; }
+        }
+    </script>
+</body>
+
+</html>

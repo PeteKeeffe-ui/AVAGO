@@ -1,0 +1,35 @@
+{
+  "name": "avq-aviation-questions",
+  "version": "1.0.0",
+  "description": "AVQ - Aviation Questions: Kahoot-style quiz platform for EASA Part-66 aircraft maintenance training",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "init-db": "node server/initDatabase.js"
+  },
+  "keywords": [
+    "aviation",
+    "quiz",
+    "easa",
+    "part-66",
+    "aircraft-maintenance",
+    "education"
+  ],
+  "author": "AVQ",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "sql.js": "^1.8.0",
+    "bcrypt": "^5.1.1",
+    "express-session": "^1.17.3",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

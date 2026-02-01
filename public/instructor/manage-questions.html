@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Manager - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/instructor.css">
+    <style>
+        .q-manager-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .q-card {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            transition: background 0.2s;
+        }
+
+        .q-card:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .q-meta {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .editor-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--secondary);
+        }
+
+        .option-input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .bulk-textarea {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            background: var(--bg-dark);
+            color: #0f0;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="q-manager-container">
+        <header class="flex-between mb-xl">
+            <div>
+                <a href="/instructor/dashboard.html" class="btn btn-outline btn-sm">← Back</a>
+                <h1 class="mt-md">Aviation Question Bank</h1>
+            </div>
+            <div class="flex gap-md">
+                <button onclick="showBulkImport()" class="btn btn-outline">Bulk Import</button>
+                <button onclick="showEditor()" class="btn btn-primary">➕ New Question</button>
+            </div>
+        </header>
+
+        <div class="card flex-between gap-lg mb-lg" style="padding: 1rem;">
+            <div class="flex gap-md" style="flex: 1;">
+                <select id="modFilter" onchange="loadQuestions()">
+                    <option value="all">All Modules</option>
+                </select>
+                <input type="text" id="searchFilter" placeholder="Search questions..." oninput="filterLocal()"
+                    style="flex: 1;">
+            </div>
+            <div id="statsLabel" class="text-secondary small">Total: 0 questions</div>
+        </div>
+
+        <div class="card" style="padding: 0;">
+            <div id="qList"></div>
+        </div>
+    </div>
+
+    <!-- Question Editor Modal -->
+    <div id="qModal" class="editor-modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Question</h2>
+            <form id="qForm" onsubmit="handleSave(event)">
+                <input type="hidden" id="editId">
+                <div class="grid grid-2 gap-md">
+                    <div class="input-group">
+                        <label>Module</label>
+                        <select id="qModule" onchange="updateTopics()" required></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Topic</label>
+                        <select id="qTopic" required></select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Question Text</label>
+                    <textarea id="qText" rows="4" required></textarea>
+                </div>
+
+                <div class="grid grid-2 gap-md">
+                    <div class="input-group">
+                        <label>Type</label>
+                        <select id="qType" onchange="renderOptionsEditor()" required>
+                            <option value="single">Single Choice</option>
+                            <option value="multiple">Multiple Choice</option>
+                            <option value="truefalse">True/False</option>
+                            <option value="short">Short Answer</option>
+                            <option value="fillblank">Fill in the Blank</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Difficulty</label>
+                        <select id="qDiff">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="optionsEditor" class="mt-lg">
+                    <!-- Options UI injected here -->
+                </div>
+
+                <div class="input-group mt-lg">
+                    <label>Explanation / Reasoning</label>
+                    <textarea id="qExpl" rows="3" required></textarea>
+                </div>
+
+                <div class="flex-end gap-md mt-xl">
+                    <button type="button" onclick="hideModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulkModal" class="editor-modal">
+        <div class="modal-content">
+            <h2>Bulk Import (Aiken Format)</h2>
+            <p class="text-secondary small mb-md">Paste multiple choice questions in Aiken format:</p>
+            <pre style="font-size: 10px; background: #000; padding: 0.5rem; margin-bottom: 1rem;">
+What is the primary gas in the atmosphere?
+A. Oxygen
+B. Nitrogen
+C. Carbon Dioxide
+ANSWER: B</pre>
+            <div class="input-group">
+                <label>Select Module for these questions</label>
+                <select id="bulkModule"></select>
+            </div>
+            <textarea id="bulkText" class="bulk-textarea" placeholder="Paste questions here..."></textarea>
+            <div class="flex-end gap-md mt-lg">
+                <button onclick="hideModal()" class="btn btn-outline">Cancel</button>
+                <button onclick="processBulk()" class="btn btn-primary">Import Questions</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let modData = [];
+
+        async function init() {
+            const resp = await fetch('/api/modules');
+            const data = await resp.json();
+            modData = data.modules;
+
+            const filters = [document.getElementById('modFilter'), document.getElementById('qModule'), document.getElementById('bulkModule')];
+            modData.forEach(m => {
+                filters.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.id}: ${m.name.split(':')[1] || m.name}`;
+                    f.appendChild(opt);
+                });
+            });
+            updateTopics();
+            await loadQuestions();
+        }
+
+        async function loadQuestions() {
+            const mod = document.getElementById('modFilter').value;
+            const url = mod === 'all' ? '/api/questions' : `/api/questions/module/${mod}`;
+            const resp = await fetch(url);
+            questions = await resp.json();
+            display(questions);
+        }
+
+        function display(list) {
+            const container = document.getElementById('qList');
+            document.getElementById('statsLabel').textContent = `Total: ${list.length} questions`;
+            container.innerHTML = list.map(q => `
+                <div class="q-card flex-between">
+                    <div style="flex: 1;">
+                        <div class="q-meta">
+                            <span class="badge badge-primary">${q.module_id}</span>
+                            <span class="badge badge-outline">${q.question_type}</span>
+                            <span class="text-secondary small">${q.topic}</span>
+                        </div>
+                        <p style="margin: 0; font-weight: 500;">${q.question_text}</p>
+                    </div>
+                    <div class="flex gap-sm">
+                        <button onclick="showEditor(${q.id})" class="btn btn-outline btn-sm">Edit</button>
+                        <button onclick="deleteQ(${q.id})" class="btn btn-error btn-sm">Del</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterLocal() {
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const filtered = questions.filter(q => q.question_text.toLowerCase().includes(search) || q.topic.toLowerCase().includes(search));
+            display(filtered);
+        }
+
+        function updateTopics() {
+            const modId = document.getElementById('qModule').value;
+            const mod = modData.find(m => m.id === modId);
+            const sel = document.getElementById('qTopic');
+            sel.innerHTML = (mod ? mod.topics : []).map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function renderOptionsEditor(existing = null) {
+            const type = document.getElementById('qType').value;
+            const container = document.getElementById('optionsEditor');
+            container.innerHTML = '';
+
+            if (type === 'single' || type === 'multiple') {
+                container.innerHTML = '<h4>Options</h4>';
+                const options = existing ? JSON.parse(existing.options) : ['', '', '', ''];
+                const correct = existing ? JSON.parse(existing.correct_answer) : (type === 'single' ? 0 : []);
+
+                options.forEach((opt, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'option-input-group';
+                    const isChecked = type === 'single' ? correct === i : (Array.isArray(correct) && correct.includes(i));
+                    div.innerHTML = `
+                        <input type="${type === 'single' ? 'radio' : 'checkbox'}" name="correct" value="${i}" ${isChecked ? 'checked' : ''}>
+                        <input type="text" class="opt-text" value="${opt}" placeholder="Option ${String.fromCharCode(65 + i)}" style="flex: 1;">
+                    `;
+                    container.appendChild(div);
+                });
+            } else if (type === 'truefalse') {
+                const correct = existing ? JSON.parse(existing.correct_answer) : true;
+                container.innerHTML = `
+                    <label>Correct Answer</label>
+                    <select id="tfCorrect">
+                        <option value="true" ${correct === true ? 'selected' : ''}>True</option>
+                        <option value="false" ${correct === false ? 'selected' : ''}>False</option>
+                    </select>
+                `;
+            } else if (type === 'short') {
+                const correct = existing ? JSON.parse(existing.correct_answer) : '';
+                container.innerHTML = `
+                    <label>Accepted Answers (comma separated)</label>
+                    <input type="text" id="shortCorrect" value="${Array.isArray(correct) ? correct.join(', ') : correct}" placeholder="e.g. 150 ohms, 150, 150Ω">
+                `;
+            } else if (type === 'fillblank') {
+                const correct = existing ? JSON.parse(existing.correct_answer) : '';
+                container.innerHTML = `
+                    <div class="alert alert-info small mb-sm">
+                        Use <strong>[blank]</strong> in the question text above where the missing word should be.<br>
+                        <em>Single Blank:</em> Comma-separated answers are synonyms (e.g. "lift, upward force").<br>
+                        <em>Multiple Blanks:</em> Comma-separated answers must match each blank in order (e.g. "red, blue").
+                    </div>
+                    <label>Correct Word(s) for the blank</label>
+                    <input type="text" id="fillCorrect" value="${Array.isArray(correct) ? correct.join(', ') : correct}" placeholder="e.g. lift">
+                `;
+            }
+        }
+
+        async function handleSave(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const type = document.getElementById('qType').value;
+
+            let options = null;
+            let correct = null;
+
+            if (type === 'single' || type === 'multiple') {
+                const optInputs = document.querySelectorAll('.opt-text');
+                options = Array.from(optInputs).map(i => i.value);
+                const checks = document.querySelectorAll('input[name="correct"]:checked');
+                if (type === 'single') correct = checks.length ? parseInt(checks[0].value) : 0;
+                else correct = Array.from(checks).map(c => parseInt(c.value));
+            } else if (type === 'truefalse') {
+                correct = document.getElementById('tfCorrect').value === 'true';
+            } else if (type === 'fillblank') {
+                correct = document.getElementById('fillCorrect').value.split(',').map(s => s.trim());
+            } else {
+                correct = document.getElementById('shortCorrect').value.split(',').map(s => s.trim());
+            }
+
+            const data = {
+                module_id: document.getElementById('qModule').value,
+                topic: document.getElementById('qTopic').value,
+                question_text: document.getElementById('qText').value,
+                question_type: type,
+                options: options,
+                correct_answer: correct,
+                explanation: document.getElementById('qExpl').value,
+                difficulty: document.getElementById('qDiff').value
+            };
+
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `/api/questions/${id}` : '/api/questions';
+
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log(`Saving question (${method})...`, data);
+
+                const resp = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await resp.json();
+                if (result.success) {
+                    hideModal();
+                    loadQuestions();
+                } else if (result.error === 'Unauthorized' || resp.status === 403) {
+                    alert('Session expired. Redirecting to login...');
+                    window.location.href = '/instructor/login.html';
+                } else {
+                    alert('Error saving question: ' + (result.error || 'Unknown error'));
+                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Save failed', result);
+                }
+            } catch (err) {
+                console.error('Error saving quiz:', err);
+                alert('Connection error. Is the server running?');
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Fetch exception', err);
+            }
+        }
+
+        function showEditor(id = null) {
+            const modal = document.getElementById('qModal');
+            document.getElementById('editId').value = id || '';
+            document.getElementById('modalTitle').textContent = id ? 'Edit Question' : 'Add Question';
+
+            if (id) {
+                const q = questions.find(q => q.id === id);
+                document.getElementById('qModule').value = q.module_id;
+                updateTopics();
+                document.getElementById('qTopic').value = q.topic;
+                document.getElementById('qText').value = q.question_text;
+                document.getElementById('qType').value = q.question_type;
+                document.getElementById('qDiff').value = q.difficulty || 'medium';
+                document.getElementById('qExpl').value = q.explanation;
+                renderOptionsEditor(q);
+            } else {
+                document.getElementById('qForm').reset();
+                renderOptionsEditor();
+            }
+            modal.style.display = 'block';
+        }
+
+        function showBulkImport() {
+            document.getElementById('bulkModal').style.display = 'block';
+        }
+
+        function hideModal() {
+            document.querySelectorAll('.editor-modal').forEach(m => m.style.display = 'none');
+        }
+
+        async function deleteQ(id) {
+            if (!confirm('Permanently delete this question?')) return;
+            const resp = await fetch(`/api/questions/${id}`, { method: 'DELETE' });
+            if ((await resp.json()).success) loadQuestions();
+        }
+
+        async function processBulk() {
+            const text = document.getElementById('bulkText').value;
+            const modId = document.getElementById('bulkModule').value;
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+            let count = 0;
+            let currentQ = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.match(/^[A-F]\./)) {
+                    if (currentQ) currentQ.options.push(line.substring(2).trim());
+                } else if (line.startsWith('ANSWER:')) {
+                    if (currentQ) {
+                        const ans = line.replace('ANSWER:', '').trim();
+                        currentQ.correct_answer = ans.charCodeAt(0) - 65;
+                        await fetch('/api/questions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(currentQ)
+                        });
+                        count++;
+                        currentQ = null;
+                    }
+                } else {
+                    currentQ = {
+                        module_id: modId,
+                        topic: 'General',
+                        question_text: line,
+                        question_type: 'single',
+                        options: [],
+                        correct_answer: 0,
+                        explanation: 'Bulk imported question.',
+                        difficulty: 'medium'
+                    };
+                }
+            }
+            alert(`Imported ${count} questions!`);
+            hideModal();
+            loadQuestions();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

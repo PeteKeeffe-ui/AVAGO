@@ -1,0 +1,513 @@
+{
+    "questions": [
+        {
+            "module_id": "M1",
+            "topic": "Algebra",
+            "question_text": "Solve for x: 3x + 7 = 22",
+            "question_type": "short",
+            "options": null,
+            "correct_answer": [
+                "5",
+                "x=5",
+                "x = 5"
+            ],
+            "explanation": "To solve: 3x + 7 = 22. Subtract 7 from both sides: 3x = 15. Divide both sides by 3: x = 5",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M1",
+            "topic": "Geometry",
+            "question_text": "What is the area of a triangle with base 10m and height 6m?",
+            "question_type": "single",
+            "options": [
+                "30 m²",
+                "60 m²",
+                "16 m²",
+                "20 m²"
+            ],
+            "correct_answer": 0,
+            "explanation": "Area of triangle = (base × height) / 2 = (10 × 6) / 2 = 30 m²",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M1",
+            "topic": "Arithmetic",
+            "question_text": "Convert 0.75 to a fraction in simplest form",
+            "question_type": "single",
+            "options": [
+                "3/4",
+                "7/5",
+                "75/100",
+                "15/20"
+            ],
+            "correct_answer": 0,
+            "explanation": "0.75 = 75/100. Simplifying by dividing both numerator and denominator by 25 gives 3/4",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M3",
+            "topic": "DC Circuits",
+            "question_text": "In a series circuit with three resistors (10Ω, 20Ω, 30Ω), what is the total resistance?",
+            "question_type": "single",
+            "options": [
+                "60Ω",
+                "20Ω",
+                "5.45Ω",
+                "15Ω"
+            ],
+            "correct_answer": 0,
+            "explanation": "In a series circuit, total resistance = R1 + R2 + R3 = 10 + 20 + 30 = 60Ω",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M3",
+            "topic": "Electrical Terminology",
+            "question_text": "What is Ohm's Law?",
+            "question_type": "single",
+            "options": [
+                "V = I × R",
+                "V = I / R",
+                "V = R / I",
+                "V = I + R"
+            ],
+            "correct_answer": 0,
+            "explanation": "Ohm's Law states that Voltage (V) equals Current (I) multiplied by Resistance (R): V = I × R",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M3",
+            "topic": "AC Theory",
+            "question_text": "The frequency of AC power in most countries is either 50Hz or 60Hz",
+            "question_type": "truefalse",
+            "options": null,
+            "correct_answer": true,
+            "explanation": "True. Most countries use either 50Hz (Europe, Australia, Asia) or 60Hz (North America) for AC power distribution",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M3",
+            "topic": "Capacitance",
+            "question_text": "Which of the following are properties of capacitors? (Select all that apply)",
+            "question_type": "multiple",
+            "options": [
+                "Store electrical energy",
+                "Block DC current when fully charged",
+                "Pass AC current",
+                "Increase resistance over time"
+            ],
+            "correct_answer": [
+                0,
+                1,
+                2
+            ],
+            "explanation": "Capacitors store electrical energy in an electric field, block DC when fully charged, and allow AC to pass. They do not increase resistance over time",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M7",
+            "topic": "Safety",
+            "question_text": "Before working on aircraft electrical systems, you should always:",
+            "question_type": "single",
+            "options": [
+                "Disconnect the battery",
+                "Wear rubber gloves",
+                "Check the weather",
+                "Inform the pilot"
+            ],
+            "correct_answer": 0,
+            "explanation": "Safety protocol requires disconnecting the battery before working on electrical systems to prevent shock and short circuits",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M7",
+            "topic": "Tools",
+            "question_text": "A torque wrench is used to:",
+            "question_type": "single",
+            "options": [
+                "Apply a specific amount of rotational force",
+                "Measure the length of bolts",
+                "Cut metal sheets",
+                "Remove damaged fasteners"
+            ],
+            "correct_answer": 0,
+            "explanation": "A torque wrench is designed to apply a specific, measured amount of torque (rotational force) to fasteners, ensuring proper tightness without over-tightening",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M7",
+            "topic": "Maintenance Procedures",
+            "question_text": "Which documents are essential for aircraft maintenance? (Select all that apply)",
+            "question_type": "multiple",
+            "options": [
+                "Maintenance Manual",
+                "Flight Manual",
+                "Service Bulletins",
+                "Passenger Manifest"
+            ],
+            "correct_answer": [
+                0,
+                2
+            ],
+            "explanation": "Maintenance Manuals and Service Bulletins are essential maintenance documents. Flight Manuals are for pilots, and Passenger Manifests are operational documents",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Fundamentals",
+            "question_text": "The Brayton cycle is the thermodynamic cycle used in gas turbine engines",
+            "question_type": "truefalse",
+            "options": null,
+            "correct_answer": true,
+            "explanation": "True. The Brayton cycle (constant pressure cycle) is the ideal thermodynamic cycle for gas turbine engines, consisting of compression, combustion, and expansion",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Engine Performance",
+            "question_text": "What is bypass ratio in a turbofan engine?",
+            "question_type": "single",
+            "options": [
+                "The ratio of air bypassing the core to air going through the core",
+                "The ratio of fuel to air in combustion",
+                "The ratio of thrust to weight",
+                "The ratio of compressor stages to turbine stages"
+            ],
+            "correct_answer": 0,
+            "explanation": "Bypass ratio is the ratio of mass airflow that bypasses the engine core (fan air) to the mass airflow that passes through the core. Higher bypass ratios generally mean better fuel efficiency",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Compressors",
+            "question_text": "Which of the following can cause compressor stall? (Select all that apply)",
+            "question_type": "multiple",
+            "options": [
+                "Damaged compressor blades",
+                "Excessive angle of attack on blades",
+                "Foreign object ingestion",
+                "Low ambient temperature"
+            ],
+            "correct_answer": [
+                0,
+                1,
+                2
+            ],
+            "explanation": "Compressor stall can be caused by damaged blades, excessive blade angle of attack, or FOD. Low ambient temperature actually improves engine performance and doesn't cause stall",
+            "image_url": null,
+            "difficulty": "hard"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Combustion",
+            "question_text": "The primary purpose of the combustion chamber is to:",
+            "question_type": "single",
+            "options": [
+                "Burn fuel to increase air temperature and energy",
+                "Compress air before the turbine",
+                "Cool the turbine blades",
+                "Generate electricity for aircraft systems"
+            ],
+            "correct_answer": 0,
+            "explanation": "The combustion chamber burns fuel with compressed air to significantly increase the temperature and energy of the gas, which then expands through the turbine to produce thrust",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Turbine Section",
+            "question_text": "Turbine blades are subjected to which types of stress? (Select all that apply)",
+            "question_type": "multiple",
+            "options": [
+                "Centrifugal stress",
+                "Thermal stress",
+                "Bending stress",
+                "Electrical stress"
+            ],
+            "correct_answer": [
+                0,
+                1,
+                2
+            ],
+            "explanation": "Turbine blades experience centrifugal stress from rotation, thermal stress from high temperatures, and bending stress from gas flow. They don't experience electrical stress",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Lubrication Systems",
+            "question_text": "In a dry sump lubrication system, where is the oil stored?",
+            "question_type": "single",
+            "options": [
+                "In a separate oil tank",
+                "In the engine sump",
+                "In the fuel tank",
+                "In the combustion chamber"
+            ],
+            "correct_answer": 0,
+            "explanation": "In a dry sump system, oil is scavenged from the engine and stored in a separate oil tank, unlike wet sump systems where oil is stored in the engine sump",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Fuel Systems",
+            "question_text": "What is the purpose of a fuel control unit (FCU)?",
+            "question_type": "single",
+            "options": [
+                "Meter and regulate fuel flow to the engine",
+                "Store fuel for the engine",
+                "Filter contaminants from fuel",
+                "Heat fuel to prevent icing"
+            ],
+            "correct_answer": 0,
+            "explanation": "The FCU (or fuel control unit) meters and regulates the fuel flow to the combustion chamber based on throttle position and engine parameters, ensuring optimal performance",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Starting Systems",
+            "question_text": "Gas turbine engines typically use which type of ignition system?",
+            "question_type": "single",
+            "options": [
+                "High-energy capacitor discharge",
+                "Magneto ignition",
+                "Battery and coil",
+                "Compression ignition"
+            ],
+            "correct_answer": 0,
+            "explanation": "Gas turbine engines use high-energy capacitor discharge ignition systems that produce a very hot, high-energy spark capable of igniting the fuel-air mixture in the combustion chamber",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Engine Indication",
+            "question_text": "What does EGT stand for in engine instrumentation?",
+            "question_type": "short",
+            "correct_answer": [
+                "Exhaust Gas Temperature",
+                "EGT"
+            ],
+            "explanation": "EGT stands for Exhaust Gas Temperature, which measures the temperature of gases leaving the turbine section. It's a critical parameter for monitoring engine health and performance",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M15",
+            "topic": "Turboprop Engines",
+            "question_text": "In a turboprop engine, most of the thrust is produced by:",
+            "question_type": "single",
+            "options": [
+                "The propeller",
+                "The exhaust jet",
+                "The compressor",
+                "The fan"
+            ],
+            "correct_answer": 0,
+            "explanation": "In turboprop engines, approximately 85-90% of thrust comes from the propeller, with only 10-15% from the exhaust jet. The engine's power drives the propeller through a reduction gearbox",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M17",
+            "topic": "Fundamentals",
+            "question_text": "Propeller slip is:",
+            "question_type": "single",
+            "options": [
+                "The difference between geometric pitch and effective pitch",
+                "The rotation of the propeller on its shaft",
+                "The loss of blade material due to erosion",
+                "The angle between the blade and the hub"
+            ],
+            "correct_answer": 0,
+            "explanation": "Propeller slip is the difference between the theoretical distance a propeller should advance in one revolution (geometric pitch) and the actual distance it advances (effective pitch)",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M17",
+            "topic": "Pitch Control",
+            "question_text": "A constant-speed propeller automatically adjusts blade angle to maintain:",
+            "question_type": "single",
+            "options": [
+                "Constant RPM",
+                "Constant thrust",
+                "Constant torque",
+                "Constant airspeed"
+            ],
+            "correct_answer": 0,
+            "explanation": "A constant-speed propeller uses a governor to automatically adjust blade pitch angle to maintain a constant engine RPM selected by the pilot, regardless of aircraft speed or power changes",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M17",
+            "topic": "Pitch Control",
+            "question_text": "Feathering a propeller means:",
+            "question_type": "single",
+            "options": [
+                "Rotating blades to minimum drag position (edge-on to airflow)",
+                "Increasing blade pitch for maximum thrust",
+                "Reversing blade pitch for braking",
+                "Removing the propeller from the engine"
+            ],
+            "correct_answer": 0,
+            "explanation": "Feathering rotates the propeller blades to approximately 90° (edge-on to the airflow) to minimize drag in case of engine failure, preventing windmilling",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M17",
+            "topic": "Maintenance",
+            "question_text": "Propeller blade tracking checks that:",
+            "question_type": "single",
+            "options": [
+                "All blades follow the same path of rotation",
+                "Blades are properly balanced",
+                "Blade pitch angles are correct",
+                "Blades are free from cracks"
+            ],
+            "correct_answer": 0,
+            "explanation": "Blade tracking ensures all propeller blades follow the same circular path during rotation. Poor tracking causes vibration and uneven loading",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M8",
+            "topic": "Theory of Flight",
+            "question_text": "The four forces acting on an aircraft in flight are:",
+            "question_type": "multiple",
+            "options": [
+                "Lift",
+                "Weight",
+                "Thrust",
+                "Drag",
+                "Momentum",
+                "Inertia"
+            ],
+            "correct_answer": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "explanation": "The four forces of flight are Lift (upward), Weight (downward), Thrust (forward), and Drag (backward). Momentum and inertia are properties, not forces",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M8",
+            "topic": "Aerodynamics",
+            "question_text": "Bernoulli's principle states that as air velocity increases, pressure:",
+            "question_type": "single",
+            "options": [
+                "Decreases",
+                "Increases",
+                "Remains constant",
+                "Becomes turbulent"
+            ],
+            "correct_answer": 0,
+            "explanation": "Bernoulli's principle states that in a moving fluid (like air), an increase in velocity results in a decrease in pressure. This principle is fundamental to understanding how wings generate lift",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M8",
+            "topic": "Stability",
+            "question_text": "An aircraft with positive static stability will:",
+            "question_type": "single",
+            "options": [
+                "Return to its original position after a disturbance",
+                "Continue to diverge from its original position",
+                "Remain in the disturbed position",
+                "Oscillate indefinitely"
+            ],
+            "correct_answer": 0,
+            "explanation": "Positive static stability means the aircraft will generate forces/moments that return it to its original trim condition after being disturbed, making it inherently stable",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M9",
+            "topic": "Human Error",
+            "question_text": "The 'Swiss Cheese Model' of accident causation suggests that:",
+            "question_type": "single",
+            "options": [
+                "Accidents occur when multiple defensive layers all have failures that align",
+                "One major error is sufficient to cause an accident",
+                "Human errors are random and unpredictable",
+                "Technology can eliminate all human errors"
+            ],
+            "correct_answer": 0,
+            "explanation": "The Swiss Cheese Model (James Reason) shows that accidents occur when holes (failures) in multiple defensive layers align, allowing a hazard to pass through all defenses",
+            "image_url": null,
+            "difficulty": "medium"
+        },
+        {
+            "module_id": "M9",
+            "topic": "Human Performance",
+            "question_text": "Which factors can negatively affect human performance in maintenance? (Select all that apply)",
+            "question_type": "multiple",
+            "options": [
+                "Fatigue",
+                "Time pressure",
+                "Adequate lighting",
+                "Poor communication",
+                "Proper tools"
+            ],
+            "correct_answer": [
+                0,
+                1,
+                3
+            ],
+            "explanation": "Fatigue, time pressure, and poor communication negatively affect performance. Adequate lighting and proper tools actually improve performance",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M10",
+            "topic": "EASA",
+            "question_text": "EASA Part-66 relates to:",
+            "question_type": "single",
+            "options": [
+                "Certifying aircraft maintenance personnel",
+                "Aircraft design requirements",
+                "Flight operations",
+                "Air traffic control"
+            ],
+            "correct_answer": 0,
+            "explanation": "EASA Part-66 specifies the requirements for the certification of aircraft maintenance personnel, including knowledge requirements, experience, and examination standards",
+            "image_url": null,
+            "difficulty": "easy"
+        },
+        {
+            "module_id": "M10",
+            "topic": "Airworthiness",
+            "question_text": "A Certificate of Release to Service (CRS) can only be issued by:",
+            "question_type": "single",
+            "options": [
+                "Appropriately licensed aircraft maintenance engineer",
+                "Any qualified mechanic",
+                "The aircraft owner",
+                "The pilot in command"
+            ],
+            "correct_answer": 0,
+            "explanation": "Only an appropriately licensed aircraft maintenance engineer with the correct authorization can issue a CRS, certifying that maintenance has been completed satisfactorily",
+            "image_url": null,
+            "difficulty": "medium"
+        }
+    ]
+}

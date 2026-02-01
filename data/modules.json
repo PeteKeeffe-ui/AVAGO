@@ -1,0 +1,305 @@
+{
+    "modules": [
+        {
+            "id": "M1",
+            "name": "Module 1: Mathematics",
+            "category": "Common",
+            "topics": [
+                "Arithmetic",
+                "Algebra",
+                "Geometry"
+            ]
+        },
+        {
+            "id": "M2",
+            "name": "Module 2: Physics",
+            "category": "Common",
+            "topics": [
+                "Matter",
+                "Mechanics",
+                "Thermodynamics",
+                "Optics",
+                "Wave Motion"
+            ]
+        },
+        {
+            "id": "M3",
+            "name": "Module 3: Electrical Fundamentals",
+            "category": "Common",
+            "topics": [
+                "Electron Theory",
+                "DC Circuits",
+                "AC Theory",
+                "Capacitance",
+                "Inductance"
+            ]
+        },
+        {
+            "id": "M4",
+            "name": "Module 4: Electronic Fundamentals",
+            "category": "Common",
+            "topics": [
+                "Semiconductors",
+                "Integrated Circuits",
+                "Servomechanisms",
+                "Multiplexing"
+            ]
+        },
+        {
+            "id": "M5",
+            "name": "Module 5: Digital Techniques",
+            "category": "Common",
+            "topics": [
+                "Number Systems",
+                "Logic Circuits",
+                "Microprocessors",
+                "Data Buses"
+            ]
+        },
+        {
+            "id": "M6",
+            "name": "Module 6: Materials & Hardware",
+            "category": "Common",
+            "topics": [
+                "Aircraft Materials",
+                "Corrosion",
+                "Fasteners",
+                "Bearings",
+                "Cables"
+            ]
+        },
+        {
+            "id": "M7",
+            "name": "Module 7: Maintenance Practices",
+            "category": "Common",
+            "topics": [
+                "Safety",
+                "Tools",
+                "Engineering Drawings",
+                "Riveting",
+                "Weighing"
+            ]
+        },
+        {
+            "id": "M8",
+            "name": "Module 8: Basic Aerodynamics",
+            "category": "Common",
+            "topics": [
+                "Atmosphere",
+                "Aerodynamics",
+                "Theory of Flight",
+                "Stability"
+            ]
+        },
+        {
+            "id": "M9",
+            "name": "Module 9: Human Factors",
+            "category": "Common",
+            "topics": [
+                "Human Performance",
+                "Social Psychology",
+                "Communication",
+                "Human Error"
+            ]
+        },
+        {
+            "id": "M10",
+            "name": "Module 10: Aviation Legislation",
+            "category": "Common",
+            "topics": [
+                "Regulatory Framework",
+                "EASA",
+                "Certification",
+                "Airworthiness"
+            ]
+        },
+        {
+            "id": "M11A",
+            "name": "Module 11A: Turbine Aeroplane Systems",
+            "category": "B1.1",
+            "topics": [
+                "Airframe Structures",
+                "Flight Controls",
+                "Hydraulics",
+                "Landing Gear",
+                "Fuel Systems"
+            ]
+        },
+        {
+            "id": "M11B",
+            "name": "Module 11B: Piston Aeroplane Systems",
+            "category": "B1.2",
+            "topics": [
+                "Airframe Structures",
+                "Flight Controls",
+                "Hydraulics",
+                "Landing Gear",
+                "Fuel Systems"
+            ]
+        },
+        {
+            "id": "M12",
+            "name": "Module 12: Helicopter Systems",
+            "category": "B1.3/B1.4",
+            "topics": [
+                "Rotary Wing Aerodynamics",
+                "Flight Controls",
+                "Transmissions",
+                "Rotor Systems"
+            ]
+        },
+        {
+            "id": "M13",
+            "name": "Module 13: Aircraft Structures and Systems (Avionics)",
+            "category": "B2",
+            "topics": [
+                "13.1 Theory of Flight",
+                "13.2 Structures - General Concepts",
+                "13.3 Autoflight (ATA 22)",
+                "13.4 Communication/Navigation (ATA 23/34)",
+                "13.5 Electrical Power (ATA 24)",
+                "13.6 Equipment and Furnishings (ATA 25)",
+                "13.7 Flight Controls (ATA 27)",
+                "13.8 Instrument Systems (ATA 31)",
+                "13.9 Lights (ATA 33)"
+            ]
+        },
+        {
+            "id": "M14",
+            "name": "Module 14: Propulsion",
+            "category": "B2",
+            "topics": [
+                "Turbine Engines",
+                "Engine Indicating",
+                "Starting Systems"
+            ]
+        },
+        {
+            "id": "M15",
+            "name": "Module 15: Gas Turbine Engines",
+            "category": "B1.1/B1.3",
+            "topics": [
+                "Fundamentals",
+                "Engine Performance",
+                "Compressors",
+                "Combustion",
+                "Turbines",
+                "Lubrication",
+                "Fuel Systems"
+            ]
+        },
+        {
+            "id": "M16",
+            "name": "Module 16: Piston Engines",
+            "category": "B1.2/B1.4",
+            "topics": [
+                "Fundamentals",
+                "Engine Construction",
+                "Fuel Systems",
+                "Ignition",
+                "Lubrication"
+            ]
+        },
+        {
+            "id": "M17",
+            "name": "Module 17: Propellers",
+            "category": "B1.1/B1.2",
+            "topics": [
+                "Fundamentals",
+                "Construction",
+                "Pitch Control",
+                "Ice Protection",
+                "Maintenance"
+            ]
+        }
+    ],
+    "examGroupings": {
+        "B1.1": {
+            "name": "B1.1 - Turbine Aeroplanes",
+            "modules": [
+                "M1",
+                "M2",
+                "M3",
+                "M4",
+                "M5",
+                "M6",
+                "M7",
+                "M8",
+                "M9",
+                "M10",
+                "M11A",
+                "M15",
+                "M17"
+            ]
+        },
+        "B1.2": {
+            "name": "B1.2 - Piston Aeroplanes",
+            "modules": [
+                "M1",
+                "M2",
+                "M3",
+                "M4",
+                "M5",
+                "M6",
+                "M7",
+                "M8",
+                "M9",
+                "M10",
+                "M11B",
+                "M16",
+                "M17"
+            ]
+        },
+        "B1.3": {
+            "name": "B1.3 - Turbine Helicopters",
+            "modules": [
+                "M1",
+                "M2",
+                "M3",
+                "M4",
+                "M5",
+                "M6",
+                "M7",
+                "M8",
+                "M9",
+                "M10",
+                "M12",
+                "M15"
+            ]
+        },
+        "B1.4": {
+            "name": "B1.4 - Piston Helicopters",
+            "modules": [
+                "M1",
+                "M2",
+                "M3",
+                "M4",
+                "M5",
+                "M6",
+                "M7",
+                "M8",
+                "M9",
+                "M10",
+                "M12",
+                "M16"
+            ]
+        },
+        "B2": {
+            "name": "B2 - Avionics",
+            "modules": [
+                "M1",
+                "M2",
+                "M3",
+                "M4",
+                "M5",
+                "M6",
+                "M7",
+                "M8",
+                "M9",
+                "M10",
+                "M13",
+                "M14"
+            ]
+        }
+    }
+}

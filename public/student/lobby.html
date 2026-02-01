@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting for Start - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/student.css">
+</head>
+
+<body>
+    <div class="lobby-container">
+        <div class="card lobby-card">
+            <div class="logo">✈️</div>
+            <h1 id="welcomeText">Welcome, Student</h1>
+            <p>You're in! Get ready for the quiz.</p>
+
+            <div class="waiting-animation">
+                <div class="waiting-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <p class="mt-md text-secondary">Waiting for instructor to start...</p>
+            </div>
+
+            <div class="responses-info card-glass" style="padding: 1rem; margin-top: 2rem;">
+                <h3 id="sessionInfo">Game Code: ------</h3>
+            </div>
+
+            <div class="lobby-students" id="studentGrid">
+                <!-- Other students will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const gameCode = sessionStorage.getItem('gameCode');
+        const studentName = sessionStorage.getItem('studentName');
+
+        if (!gameCode || !studentName) {
+            window.location.href = '/student/join.html';
+        }
+
+        document.getElementById('welcomeText').textContent = `Welcome, ${studentName}`;
+        document.getElementById('sessionInfo').textContent = `Game Code: ${gameCode}`;
+
+        // Join the session (reconect if needed)
+        socket.emit('join-session', { gameCode, studentName });
+
+        socket.on('student-joined', (data) => {
+            const grid = document.getElementById('studentGrid');
+            grid.innerHTML = data.students.map(s => `
+        <div class="lobby-student">
+          <div class="lobby-student-avatar">${s.name[0].toUpperCase()}</div>
+          <div class="lobby-student-name">${s.name}</div>
+        </div>
+      `).join('');
+        });
+
+        socket.on('quiz-started', (data) => {
+            window.location.href = '/student/quiz.html';
+        });
+
+        socket.on('join-error', (data) => {
+            alert(data.message);
+            window.location.href = '/student/join.html';
+        });
+    </script>
+</body>
+
+</html>

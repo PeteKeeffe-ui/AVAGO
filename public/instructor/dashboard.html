@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/instructor.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="instructor-header">
+            <div class="flex-between">
+                <h1><span class="logo">✈️</span> AVQ Dashboard</h1>
+                <div class="flex gap-md">
+                    <span id="instructorName" class="text-secondary"></span>
+                    <button onclick="logout()" class="btn btn-outline">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Quizzes</div>
+                <div class="stat-value" id="totalQuizzes">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Total Questions</div>
+                <div class="stat-value" id="totalQuestions">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Active Sessions</div>
+                <div class="stat-value" id="activeSessions">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex-between mb-lg">
+                <h2>Quick Actions</h2>
+            </div>
+
+            <div class="quick-actions">
+                <button onclick="startQuickQuiz()" class="btn btn-primary">
+                    🎮 Start Quick Quiz
+                </button>
+                <button onclick="window.location.href='/instructor/create-quiz.html'" class="btn btn-primary">Create New
+                    Quiz</button>
+                <button onclick="window.location.href='/instructor/manage-questions.html'"
+                    class="btn btn-secondary">Question Bank</button>
+                <button onclick="window.location.href='/instructor/manage-modules.html'" class="btn btn-outline">Module
+                    Manager</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mb-lg">My Quizzes</h2>
+            <div id="quizList" class="quiz-list">
+                <div class="text-center text-muted">
+                    <div class="spinner" style="margin: 2rem auto;"></div>
+                    <p>Loading quizzes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Check authentication
+        async function checkAuth() {
+            const response = await fetch('/api/auth/check');
+            const data = await response.json();
+
+            if (!data.authenticated || data.user.role !== 'instructor') {
+                window.location.href = '/instructor/login.html';
+                return;
+            }
+
+            currentUser = data.user;
+            document.getElementById('instructorName').textContent = `Welcome, ${currentUser.username}`;
+            loadDashboard();
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load quizzes
+                const quizzesResponse = await fetch('/api/quizzes');
+                const quizzes = await quizzesResponse.json();
+                document.getElementById('totalQuizzes').textContent = quizzes.length;
+
+                // Load questions
+                const questionsResponse = await fetch('/api/questions');
+                const questions = await questionsResponse.json();
+                document.getElementById('totalQuestions').textContent = questions.length;
+
+                // Display quizzes
+                displayQuizzes(quizzes);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Display quizzes
+        function displayQuizzes(quizzes) {
+            const quizList = document.getElementById('quizList');
+
+            if (quizzes.length === 0) {
+                quizList.innerHTML = `
+          <div class="text-center text-muted">
+            <p>No quizzes created yet. Create your first quiz to get started!</p>
+          </div>
+        `;
+                return;
+            }
+
+            quizList.innerHTML = quizzes.map(quiz => `
+        <div class="quiz-item">
+          <div class="quiz-info">
+            <h3>${quiz.title}</h3>
+            <p class="text-secondary">${quiz.description || 'No description'}</p>
+            <div class="quiz-meta">
+              <span class="badge badge-${quiz.mode === 'exam' ? 'warning' : 'primary'}">${quiz.mode}</span>
+              <span>${quiz.question_count} questions</span>
+              ${quiz.time_limit ? `<span>⏱️ ${quiz.time_limit}s per question</span>` : ''}
+            </div>
+          </div>
+          <div class="quiz-actions">
+            <button onclick="startLiveQuiz(${quiz.id})" class="btn btn-success">Start Live</button>
+            <button onclick="editQuiz(${quiz.id})" class="btn btn-outline">Edit</button>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        // Start quick quiz with random questions
+        async function startQuickQuiz() {
+            try {
+                const response = await fetch('/api/questions');
+                const allQuestions = await response.json();
+
+                if (allQuestions.length === 0) {
+                    alert('No questions available. Please add questions first.');
+                    return;
+                }
+
+                // Create a quick quiz
+                const quizData = {
+                    title: 'Quick Quiz - ' + new Date().toLocaleString(),
+                    description: 'Random questions from all modules',
+                    mode: 'practice',
+                    modules: ['all'],
+                    time_limit: 20,
+                    question_count: Math.min(10, allQuestions.length)
+                };
+
+                const createResponse = await fetch('/api/quizzes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(quizData)
+                });
+
+                const result = await createResponse.json();
+                if (result.success) {
+                    startLiveQuiz(result.id);
+                }
+            } catch (error) {
+                console.error('Error creating quick quiz:', error);
+                alert('Failed to create quick quiz');
+            }
+        }
+
+        // Start live quiz
+        async function startLiveQuiz(quizId) {
+            try {
+                const response = await fetch('/api/sessions/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quizId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = `/instructor/live-quiz.html?code=${result.gameCode}&session=${result.sessionId}&quiz=${quizId}`;
+                }
+            } catch (error) {
+                console.error('Error starting live quiz:', error);
+                alert('Failed to start live quiz');
+            }
+        }
+
+        // Edit quiz
+        function editQuiz(quizId) {
+            alert('Quiz editing coming soon!');
+        }
+
+        // Logout
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/instructor/login.html';
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+
+</html>

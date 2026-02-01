@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Quiz - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/student.css">
+</head>
+
+<body>
+    <div class="join-container">
+        <div class="card join-card">
+            <div class="logo">✈️</div>
+            <h1>Join Quiz</h1>
+            <p>Enter the game code provided by your instructor</p>
+
+            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+            <form class="join-form" id="joinForm">
+                <div class="input-group">
+                    <label for="gameCode">Game Code</label>
+                    <input type="text" id="gameCode" name="gameCode" class="game-code-input" maxlength="6"
+                        pattern="[0-9]{6}" placeholder="000000" required autofocus>
+                </div>
+
+                <div class="input-group">
+                    <label for="studentName">Your Name</label>
+                    <input type="text" id="studentName" name="studentName" placeholder="Enter your name" required>
+                </div>
+
+                <div class="flex-center gap-md mt-lg">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Join Quiz</button>
+                    <button type="button" onclick="AVQ_Debug.show()" class="btn btn-outline">Debug</button>
+                </div>
+            </form>
+
+            <a href="/" class="back-link"
+                style="margin-top: var(--spacing-md); display: inline-block; color: var(--text-secondary); text-decoration: none;">←
+                Back to Home</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/debug.js"></script>
+    <script>
+        const socket = io();
+
+        document.getElementById('joinForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const gameCode = document.getElementById('gameCode').value.trim();
+            const studentName = document.getElementById('studentName').value.trim();
+            const errorDiv = document.getElementById('error-message');
+
+            if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Attempting to join...', { gameCode, studentName });
+
+            // Store in session storage
+            sessionStorage.setItem('gameCode', gameCode);
+            sessionStorage.setItem('studentName', studentName);
+
+            // 1. LISTENERS FIRST
+            socket.on('student-joined', () => {
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Join confirmed, redirecting...');
+                window.location.href = '/student/lobby.html';
+            });
+
+            socket.on('join-error', (data) => {
+                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Join failed', data);
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            });
+
+            // 2. EMIT SECOND
+            socket.emit('join-session', { gameCode, studentName });
+        });
+
+        // Auto-format game code
+        document.getElementById('gameCode').addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+
+</html>

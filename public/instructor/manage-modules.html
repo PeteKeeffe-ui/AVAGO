@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Manager - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/instructor.css">
+    <style>
+        .m-manager-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .m-card {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .m-header {
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .m-content {
+            display: none;
+            padding: 1.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .m-card.active .m-content {
+            display: block;
+        }
+
+        .topic-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-dark);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #333;
+            margin: 0.2rem;
+        }
+
+        .topic-del {
+            cursor: pointer;
+            color: var(--error);
+            font-weight: bold;
+        }
+
+        .editor-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="m-manager-container">
+        <header class="flex-between mb-xl">
+            <div>
+                <a href="/instructor/dashboard.html" class="btn btn-outline btn-sm">← Back</a>
+                <h1 class="mt-md">Manage EASA Modules</h1>
+            </div>
+            <button onclick="showModuleEditor()" class="btn btn-primary">➕ Create New Module</button>
+        </header>
+
+        <div id="mList">
+            <!-- Modules loaded here -->
+        </div>
+    </div>
+
+    <!-- Module Editor Modal -->
+    <div id="mModal" class="editor-modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Create Module</h2>
+            <form id="mForm" onsubmit="handleSaveModule(event)">
+                <div class="input-group">
+                    <label>Module ID (e.g. M13, M21)</label>
+                    <input type="text" id="mId" required placeholder="M13">
+                </div>
+                <div class="input-group">
+                    <label>Module Name</label>
+                    <input type="text" id="mName" required placeholder="Module 13: Aircraft Systems">
+                </div>
+                <div class="input-group">
+                    <label>Category</label>
+                    <input type="text" id="mCategory" placeholder="B2 / Common">
+                </div>
+                <div class="input-group">
+                    <label>Topics / Sub-Modules</label>
+                    <div id="topicList" class="mb-sm" style="min-height: 40px;"></div>
+                    <div class="flex gap-sm">
+                        <input type="text" id="topicInput" placeholder="Add a topic then press Enter"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addTopic();}">
+                        <button type="button" onclick="addTopic()" class="btn btn-outline btn-sm">Add</button>
+                    </div>
+                </div>
+
+                <div class="flex-end gap-md mt-xl">
+                    <button type="button" onclick="hideModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Module</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let modules = [];
+        let currentTopics = [];
+        let isEditing = false;
+
+        async function loadModules() {
+            const resp = await fetch('/api/modules');
+            const data = await resp.json();
+            modules = data.modules;
+            display(modules);
+        }
+
+        function display(list) {
+            const container = document.getElementById('mList');
+            container.innerHTML = list.map(m => `
+                <div class="m-card" id="card-${m.id}">
+                    <div class="m-header" onclick="toggleCard('${m.id}')">
+                        <div>
+                            <strong>${m.id}</strong>: ${m.name}
+                            <span class="badge badge-outline ml-sm" style="font-size: 0.6rem;">${m.category || 'N/A'}</span>
+                        </div>
+                        <div class="flex gap-sm">
+                            <button onclick="event.stopPropagation(); showModuleEditor('${m.id}')" class="btn btn-outline btn-sm">Edit</button>
+                            <button onclick="event.stopPropagation(); deleteModule('${m.id}')" class="btn btn-error btn-sm">Del</button>
+                        </div>
+                    </div>
+                    <div class="m-content">
+                        <div class="text-secondary small mb-xs">Defined Topics / Sub-Modules:</div>
+                        <div>
+                            ${m.topics.map(t => `<span class="topic-tag">${t}</span>`).join('') || '<em class="text-muted">No topics defined</em>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleCard(id) {
+            const el = document.getElementById(`card-${id}`);
+            el.classList.toggle('active');
+        }
+
+        function showModuleEditor(id = null) {
+            isEditing = !!id;
+            const modal = document.getElementById('mModal');
+            document.getElementById('mId').disabled = isEditing;
+            document.getElementById('modalTitle').textContent = isEditing ? 'Edit Module' : 'Create Module';
+
+            if (id) {
+                const m = modules.find(m => m.id === id);
+                document.getElementById('mId').value = m.id;
+                document.getElementById('mName').value = m.name;
+                document.getElementById('mCategory').value = m.category || '';
+                currentTopics = [...m.topics];
+            } else {
+                document.getElementById('mForm').reset();
+                currentTopics = [];
+            }
+            renderTopics();
+            modal.style.display = 'block';
+        }
+
+        function renderTopics() {
+            const container = document.getElementById('topicList');
+            container.innerHTML = currentTopics.map((t, i) => `
+                <span class="topic-tag">
+                    ${t}
+                    <span class="topic-del" onclick="removeTopic(${i})">×</span>
+                </span>
+            `).join('');
+        }
+
+        function addTopic() {
+            const val = document.getElementById('topicInput').value.trim();
+            if (val && !currentTopics.includes(val)) {
+                currentTopics.push(val);
+                document.getElementById('topicInput').value = '';
+                renderTopics();
+            }
+        }
+
+        function removeTopic(i) {
+            currentTopics.splice(i, 1);
+            renderTopics();
+        }
+
+        function hideModal() {
+            document.getElementById('mModal').style.display = 'none';
+        }
+
+        async function handleSaveModule(e) {
+            e.preventDefault();
+            const id = document.getElementById('mId').value.trim();
+            const data = {
+                id,
+                name: document.getElementById('mName').value.trim(),
+                category: document.getElementById('mCategory').value.trim(),
+                topics: currentTopics
+            };
+
+            const method = isEditing ? 'PUT' : 'POST';
+            const url = isEditing ? `/api/modules/${id}` : '/api/modules';
+
+            const resp = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await resp.json();
+            if (result.success) {
+                hideModal();
+                loadModules();
+            } else if (result.error === 'Unauthorized' || resp.status === 403) {
+                alert('Session expired. Redirecting to login...');
+                window.location.href = '/instructor/login.html';
+            } else {
+                alert('Error saving module: ' + (result.error || 'Unknown error'));
+            }
+        }
+
+        async function deleteModule(id) {
+            if (!confirm(`Delete module ${id}? This will not delete the questions assigned to it, but they may become harder to find.`)) return;
+            const resp = await fetch(`/api/modules/${id}`, { method: 'DELETE' });
+            if ((await resp.json()).success) loadModules();
+        }
+
+        loadModules();
+    </script>
+</body>
+
+</html>

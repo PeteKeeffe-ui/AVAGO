@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results - AVQ</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/student.css">
+</head>
+
+<body>
+    <div class="results-container">
+        <div class="card results-card fade-in">
+            <div class="results-trophy">🏆</div>
+            <h1 class="results-rank" id="rankText">You placed 1st!</h1>
+            <div class="results-score" id="scoreValue">0 pts</div>
+
+            <div class="results-breakdown">
+                <h3>Leaderboard</h3>
+                <div id="finalLeaderboard" class="leaderboard mt-md">
+                    <!-- Leaderboard injected here -->
+                </div>
+            </div>
+
+            <div class="mt-xl grid grid-2 gap-md">
+                <button onclick="window.location.href='/student/join.html'" class="btn btn-primary">Join
+                    Another</button>
+                <button onclick="window.location.href='/'" class="btn btn-outline">Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scoreText = sessionStorage.getItem('finalScore');
+        const leaderboard = JSON.parse(sessionStorage.getItem('finalLeaderboard') || '[]');
+        const studentName = sessionStorage.getItem('studentName');
+
+        document.getElementById('scoreValue').textContent = scoreText;
+
+        // Find our rank
+        const myIndex = leaderboard.findIndex(s => s.name === studentName);
+        const rank = myIndex + 1;
+
+        const rankText = document.getElementById('rankText');
+        if (rank === 1) {
+            rankText.textContent = 'You placed 1st! Excellent Job!';
+            rankText.classList.add('first');
+        } else if (rank === 2) {
+            rankText.textContent = 'You placed 2nd! Well done!';
+            rankText.classList.add('second');
+        } else if (rank === 3) {
+            rankText.textContent = 'You placed 3rd! Good effort!';
+            rankText.classList.add('third');
+        } else {
+            rankText.textContent = `You placed ${rank}th! Keep studying!`;
+        }
+
+        const list = document.getElementById('finalLeaderboard');
+        list.innerHTML = leaderboard.map((s, i) => `
+      <div class="leaderboard-item ${s.name === studentName ? 'selected' : ''}" style="${s.name === studentName ? 'background: rgba(59, 130, 246, 0.2); border: 1px solid var(--primary-light);' : ''}">
+        <div class="leaderboard-rank ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">${i + 1}</div>
+        <div class="leaderboard-name">${s.name} ${s.name === studentName ? '(You)' : ''}</div>
+        <div class="leaderboard-score">${s.score} pts</div>
+      </div>
+    `).join('');
+    </script>
+</body>
+
+</html>
