@@ -1,8 +1,8 @@
-# AVQ - Aviation Questions
+# AVAGO - Aviation Questions
 
 A professional Kahoot-style multiplayer quiz platform for EASA Part-66 aircraft maintenance training.
 
-![AVQ Logo](✈️)
+![AVAGO Logo](✈️)
 
 ## Features
 
@@ -46,13 +46,13 @@ A professional Kahoot-style multiplayer quiz platform for EASA Part-66 aircraft 
 ### Test Accounts
 
 **Instructors:**
-- Username: `instructor1` | Password: `avq2026`
-- Username: `instructor2` | Password: `avq2026`
+- Username: `instructor1` | Password: `avago2026`
+- Username: `instructor2` | Password: `avago2026`
 
 **Students (optional - students can join without accounts):**
-- Username: `student1` | Password: `avq2026`
-- Username: `student2` | Password: `avq2026`
-- Username: `student3` | Password: `avq2026`
+- Username: `student1` | Password: `avago2026`
+- Username: `student2` | Password: `avago2026`
+- Username: `student3` | Password: `avago2026`
 
 ## Usage Guide
 
@@ -88,7 +88,7 @@ A professional Kahoot-style multiplayer quiz platform for EASA Part-66 aircraft 
 
 ## Local Network Deployment
 
-To allow students on your local network to access AVQ:
+To allow students on your local network to access AVAGO:
 
 1. **Find Your Local IP Address**:
    ```bash
@@ -116,7 +116,7 @@ To allow students on your local network to access AVQ:
 
 1. **Create Heroku App**:
    ```bash
-   heroku create avq-app
+   heroku create avago-app
    ```
 
 2. **Set Environment Variables**:
@@ -146,7 +146,7 @@ To allow students on your local network to access AVQ:
 ## Project Structure
 
 ```
-AVQ/
+AVAGO/
 ├── server/
 │   ├── server.js           # Main server with Express & Socket.io
 │   ├── database.js         # SQLite database setup
@@ -309,4 +309,4 @@ Developed for Australian RTOs teaching EASA Part-66 aircraft maintenance.
 
 ---
 
-**AVQ - Making Aircraft Maintenance Education Engaging** ✈️
+**AVAGO - Making Aircraft Maintenance Education Engaging** ✈️

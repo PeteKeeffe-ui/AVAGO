@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Question Manager - AVQ</title>
+    <title>Question Manager - AVAGO</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/instructor.css">
     <style>
@@ -348,7 +348,7 @@ ANSWER: B</pre>
                 const method = id ? 'PUT' : 'POST';
                 const url = id ? `/api/questions/${id}` : '/api/questions';
 
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log(`Saving question (${method})...`, data);
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log(`Saving question (${method})...`, data);
 
                 const resp = await fetch(url, {
                     method,
@@ -365,12 +365,12 @@ ANSWER: B</pre>
                     window.location.href = '/instructor/login.html';
                 } else {
                     alert('Error saving question: ' + (result.error || 'Unknown error'));
-                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Save failed', result);
+                    if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.error('Save failed', result);
                 }
             } catch (err) {
                 console.error('Error saving quiz:', err);
                 alert('Connection error. Is the server running?');
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Fetch exception', err);
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.error('Fetch exception', err);
             }
         }
 

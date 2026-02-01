@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join Quiz - AVQ</title>
+    <title>Join Quiz - AVAGO</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/student.css">
 </head>
@@ -32,7 +32,7 @@
 
                 <div class="flex-center gap-md mt-lg">
                     <button type="submit" class="btn btn-primary" style="flex: 1;">Join Quiz</button>
-                    <button type="button" onclick="AVQ_Debug.show()" class="btn btn-outline">Debug</button>
+                    <button type="button" onclick="AVAGO_Debug.show()" class="btn btn-outline">Debug</button>
                 </div>
             </form>
 
@@ -54,7 +54,7 @@
             const studentName = document.getElementById('studentName').value.trim();
             const errorDiv = document.getElementById('error-message');
 
-            if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Attempting to join...', { gameCode, studentName });
+            if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log('Attempting to join...', { gameCode, studentName });
 
             // Store in session storage
             sessionStorage.setItem('gameCode', gameCode);
@@ -62,12 +62,12 @@
 
             // 1. LISTENERS FIRST
             socket.on('student-joined', () => {
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Join confirmed, redirecting...');
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log('Join confirmed, redirecting...');
                 window.location.href = '/student/lobby.html';
             });
 
             socket.on('join-error', (data) => {
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Join failed', data);
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.error('Join failed', data);
                 errorDiv.textContent = data.message;
                 errorDiv.style.display = 'block';
             });

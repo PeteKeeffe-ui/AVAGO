@@ -6,7 +6,7 @@ async function setup() {
     await initDatabase();
 
     const saltRounds = 10;
-    const defaultPassword = 'avq2026';
+    const defaultPassword = 'avago2026';
     const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
     const accounts = [
@@ -33,7 +33,7 @@ async function setup() {
     }
 
     console.log('\n✅ Database initialization complete!');
-    console.log('📝 Test accounts created with password: avq2026');
+    console.log('📝 Test accounts created with password: avago2026');
     process.exit(0);
 }
 

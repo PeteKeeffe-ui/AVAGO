@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Session middleware
 const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET || 'avq-secret-key',
+    secret: process.env.SESSION_SECRET || 'avago-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -789,7 +789,7 @@ async function startServer() {
     console.log('✅ Database initialized');
 
     server.listen(PORT, () => {
-        console.log(`\n🚀 AVQ Server running on port ${PORT}`);
+        console.log(`\n🚀 AVAGO Server running on port ${PORT}`);
         console.log(`📍 Local: http://localhost:${PORT}`);
         console.log(`📍 Instructor: http://localhost:${PORT}/instructor/login.html`);
         console.log(`📍 Student: http://localhost:${PORT}/student/join.html`);

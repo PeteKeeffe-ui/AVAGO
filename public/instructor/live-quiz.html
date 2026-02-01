@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Quiz Control - AVQ</title>
+    <title>Live Quiz Control - AVAGO</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/instructor.css">
     <style>
@@ -138,7 +138,7 @@
                 </div>
             </div>
             <div class="flex align-center gap-md">
-                <button onclick="AVQ_Debug.show()" class="btn btn-outline btn-sm">Debug</button>
+                <button onclick="AVAGO_Debug.show()" class="btn btn-outline btn-sm">Debug</button>
                 <button onclick="endQuiz()" class="btn btn-error">End Session</button>
             </div>
         </header>
@@ -232,8 +232,8 @@
         function updateStartButton() {
             const btn = document.getElementById('startBtn');
             btn.disabled = totalStudents === 0 || questions.length === 0;
-            if (typeof AVQ_Debug !== 'undefined') {
-                AVQ_Debug.log('Button State Updated', { totalStudents, questions: questions.length, disabled: btn.disabled });
+            if (typeof AVAGO_Debug !== 'undefined') {
+                AVAGO_Debug.log('Button State Updated', { totalStudents, questions: questions.length, disabled: btn.disabled });
             }
         }
 
@@ -241,7 +241,7 @@
             document.getElementById('displayCode').textContent = gameCode;
             document.getElementById('gameCodeLabel').textContent = `Code: ${gameCode}`;
             try {
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Fetching quiz data...', { quizId });
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log('Fetching quiz data...', { quizId });
                 const r = await fetch('/api/quizzes');
                 const qs = await r.json();
                 const q = qs.find(i => i.id == quizId);
@@ -257,13 +257,13 @@
                         }
                     }
                     questions = all.sort(() => 0.5 - Math.random()).slice(0, q.question_count);
-                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Questions loaded', { count: questions.length });
+                    if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log('Questions loaded', { count: questions.length });
                     updateStartButton();
                 } else {
-                    if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Quiz not found', { quizId });
+                    if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.error('Quiz not found', { quizId });
                 }
             } catch (e) {
-                if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.error('Failed to load quiz data', e);
+                if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.error('Failed to load quiz data', e);
             }
         }
 
@@ -390,7 +390,7 @@
         });
 
         socket.on('quiz-ended', (data) => {
-            if (typeof AVQ_Debug !== 'undefined') AVQ_Debug.log('Session ended by server');
+            if (typeof AVAGO_Debug !== 'undefined') AVAGO_Debug.log('Session ended by server');
             window.location.href = '/instructor/dashboard.html';
         });
 

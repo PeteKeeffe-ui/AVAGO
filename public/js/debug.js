@@ -17,14 +17,14 @@
         }
     }
 
-    window.AVQ_Debug = {
+    window.AVAGO_Debug = {
         log: function (msg, data = null) {
             this._add('INFO', msg, data);
-            console.log(`[AVQ-DEBUG] ${msg}`, data || '');
+            console.log(`[AVAGO-DEBUG] ${msg}`, data || '');
         },
         error: function (msg, data = null) {
             this._add('ERROR', msg, data);
-            console.error(`[AVQ-DEBUG] ${msg}`, data || '');
+            console.error(`[AVAGO-DEBUG] ${msg}`, data || '');
             reportToServer('ERROR', msg, data);
         },
         _add: function (type, message, data) {
@@ -41,7 +41,7 @@
         },
         createOverlay: function () {
             overlay = document.createElement('div');
-            overlay.id = 'avq-debug-overlay';
+            overlay.id = 'avago-debug-overlay';
             overlay.style.cssText = `
                 position: fixed; top: 10px; right: 10px; bottom: 10px; width: 400px;
                 background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace;
@@ -52,17 +52,17 @@
 
             overlay.innerHTML = `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
-                    <strong style="color: #fff;">AVQ DEBUG CONSOLE</strong>
-                    <span onclick="AVQ_Debug.hide()" style="cursor: pointer; color: #fff;">[X]</span>
+                    <strong style="color: #fff;">AVAGO DEBUG CONSOLE</strong>
+                    <span onclick="AVAGO_Debug.hide()" style="cursor: pointer; color: #fff;">[X]</span>
                 </div>
-                <div id="avq-debug-content" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
+                <div id="avago-debug-content" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
             `;
             document.body.appendChild(overlay);
             this.updateOverlay();
         },
         updateOverlay: function () {
             if (!overlay) return;
-            const content = document.getElementById('avq-debug-content');
+            const content = document.getElementById('avago-debug-content');
             content.innerHTML = logs.map(l => `
                 <div style="border-bottom: 1px solid #222; padding: 2px 0;">
                     <span style="color: #666;">[${l.time}]</span>
@@ -75,17 +75,17 @@
 
     // Global Error Handlers
     window.onerror = function (msg, url, line, col, error) {
-        AVQ_Debug.error(`Global Error: ${msg}`, { url, line, col, stack: error ? error.stack : null });
+        AVAGO_Debug.error(`Global Error: ${msg}`, { url, line, col, stack: error ? error.stack : null });
     };
 
     window.onunhandledrejection = function (event) {
-        AVQ_Debug.error(`Unhandled Promise Rejection: ${event.reason}`, { reason: event.reason });
+        AVAGO_Debug.error(`Unhandled Promise Rejection: ${event.reason}`, { reason: event.reason });
     };
 
     // Add hidden trigger (Triple tap logo or press Ctrl+Shift+D)
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-            AVQ_Debug.show();
+            AVAGO_Debug.show();
         }
     });
 
@@ -94,12 +94,12 @@
         if (typeof socket !== 'undefined') {
             const originalEmit = socket.emit;
             socket.emit = function (event, ...args) {
-                AVQ_Debug.log(`Emit: ${event}`, args);
+                AVAGO_Debug.log(`Emit: ${event}`, args);
                 return originalEmit.apply(this, [event, ...args]);
             };
 
             socket.onAny((event, ...args) => {
-                AVQ_Debug.log(`Receive: ${event}`, args);
+                AVAGO_Debug.log(`Receive: ${event}`, args);
             });
         }
     }, 1000);

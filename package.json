@@ -1,7 +1,7 @@
 {
-  "name": "avq-aviation-questions",
+  "name": "avago-aviation-questions",
   "version": "1.0.0",
-  "description": "AVQ - Aviation Questions: Kahoot-style quiz platform for EASA Part-66 aircraft maintenance training",
+  "description": "AVAGO - Aviation Questions: Kahoot-style quiz platform for EASA Part-66 aircraft maintenance training",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
@@ -16,7 +16,7 @@
     "aircraft-maintenance",
     "education"
   ],
-  "author": "AVQ",
+  "author": "AVAGO",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
