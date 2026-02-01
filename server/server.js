@@ -788,6 +788,35 @@ async function startServer() {
     await initDatabase();
     console.log('✅ Database initialized');
 
+    // Automatic Seeding: Create test accounts if database is empty
+    try {
+        const userCountRes = queries.getAllQuestions(); // Just a test to see if we have anything
+        const user = queries.getUserByUsername('instructor1');
+
+        if (!user) {
+            console.log('🌱 No instructor found. Running automatic seeding...');
+            const saltRounds = 10;
+            const defaultPassword = 'avago2026';
+            const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
+
+            const accounts = [
+                { username: 'instructor1', password: hashedPassword, role: 'instructor' },
+                { username: 'instructor2', password: hashedPassword, role: 'instructor' },
+                { username: 'student1', password: hashedPassword, role: 'student' },
+                { username: 'student2', password: hashedPassword, role: 'student' },
+                { username: 'student3', password: hashedPassword, role: 'student' },
+            ];
+
+            for (const account of accounts) {
+                queries.createUser(account.username, account.password, account.role);
+                console.log(`✅ Created default ${account.role}: ${account.username}`);
+            }
+            console.log('🚀 Automatic seeding complete!');
+        }
+    } catch (err) {
+        console.error('⚠️ Auto-seeding check failed (this is normal on fresh DBs):', err.message);
+    }
+
     server.listen(PORT, () => {
         console.log(`\n🚀 AVAGO Server running on port ${PORT}`);
         console.log(`📍 Local: http://localhost:${PORT}`);

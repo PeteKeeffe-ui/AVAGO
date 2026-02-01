@@ -20,6 +20,16 @@ async function initDatabase() {
 
   // Create tables
   db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'student',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS questions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       module_id TEXT NOT NULL,
