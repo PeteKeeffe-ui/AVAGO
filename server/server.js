@@ -788,12 +788,11 @@ async function startServer() {
     await initDatabase();
     console.log('✅ Database initialized');
 
-    // Automatic Seeding: Create test accounts if database is empty
+    // Automatic Seeding: Create test data if database is fresh
     try {
-        const userCountRes = queries.getAllQuestions(); // Just a test to see if we have anything
-        const user = queries.getUserByUsername('instructor1');
+        const adminUser = queries.getUserByUsername('instructor1');
 
-        if (!user) {
+        if (!adminUser) {
             console.log('🌱 No instructor found. Running automatic seeding...');
             const saltRounds = 10;
             const defaultPassword = 'avago2026';
@@ -811,10 +810,49 @@ async function startServer() {
                 queries.createUser(account.username, account.password, account.role);
                 console.log(`✅ Created default ${account.role}: ${account.username}`);
             }
+
+            // Re-fetch instructor1 to get its ID
+            const seededAdmin = queries.getUserByUsername('instructor1');
+            const adminId = seededAdmin ? seededAdmin.id : 1;
+
+            // Seed Questions if empty
+            const questions = queries.getAllQuestions();
+            if (questions.length === 0) {
+                const questionsPath = path.join(__dirname, '..', 'data', 'questions.json');
+                if (fs.existsSync(questionsPath)) {
+                    const questionsData = JSON.parse(fs.readFileSync(questionsPath, 'utf8'));
+                    console.log(`📦 Loading ${questionsData.questions.length} default questions...`);
+                    for (const q of questionsData.questions) {
+                        queries.createQuestion(
+                            q.module_id, q.topic, q.question_text, q.question_type,
+                            JSON.stringify(q.options), JSON.stringify(q.correct_answer),
+                            q.explanation, q.image_url, q.difficulty, adminId
+                        );
+                    }
+                    console.log('✅ Questions seeded.');
+                }
+            }
+
+            // Create a sample quiz if empty
+            const quizzes = queries.getAllQuizzes();
+            if (quizzes.length === 0) {
+                console.log('📝 Creating sample quiz...');
+                queries.createQuiz(
+                    'Aviation Maintenance Fundamentals',
+                    'A starter quiz covering EASA Modules 1, 3, and 7.',
+                    'mixed',
+                    JSON.stringify(['M1', 'M3', 'M7']),
+                    20,
+                    10,
+                    adminId
+                );
+                console.log('✅ Sample quiz created.');
+            }
+
             console.log('🚀 Automatic seeding complete!');
         }
     } catch (err) {
-        console.error('⚠️ Auto-seeding check failed (this is normal on fresh DBs):', err.message);
+        console.error('⚠️ Auto-seeding check failed:', err.message);
     }
 
     server.listen(PORT, () => {
